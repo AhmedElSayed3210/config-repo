@@ -1,0 +1,76 @@
+allowed-to-use-header-based-auth-ips: "0:0:0:0:0:0:0:1,127.0.0.1"
+
+eureka:
+  instance:
+    hostname: gateway-service
+    preferIpAddress: true
+
+server:
+  port: 6060
+  max-http-header-size: 10MB
+  netty:
+    server:
+      connection-timeout: 600s
+    request:
+      max-content-length: 50MB
+
+spring:
+  application:
+    name: gateway-service
+  datasource:
+    hikari:
+      minimum-idle: 1
+      maximum-pool-size: 10
+      idle-timeout: 300000
+  cloud:
+    gateway:
+      httpclient:
+        response-timeout: 600s
+      globalcors:
+        corsConfigurations:
+          "[/**]":
+            allowedOrigins: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+      routes:
+        - id: order-service
+          uri: "lb://order-service/"
+          predicates:
+            - Path=/order-service/**
+          filters:
+            - RewritePath=/order-service(?<segment>/?.*), ${segment}
+            - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+        - id: payment-service
+          uri: "lb://payment-service/"
+          predicates:
+            - Path=/payment-service/**
+          filters:
+            - RewritePath=/payment-service(?<segment>/?.*), ${segment}
+            - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+        - id: product-service
+          uri: "lb://product-service/"
+          predicates:
+            - Path=/product-service/**
+          filters:
+            - RewritePath=/product-service(?<segment>/?.*), ${segment}
+            - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+        - id: user-service
+          uri: "lb://user-service/"
+          predicates:
+            - Path=/user-service/**
+          filters:
+            - RewritePath=/user-service(?<segment>/?.*), ${segment}
+            - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+        - id: config-service
+          uri: "lb://config-service/"
+          predicates:
+            - Path=/config-service/**
+          filters:
+            - RewritePath=/config-service(?<segment>/?.*), ${segment}
+            - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+
+timeout:
+  connect: 60000
+  read: 60000
+  write: 60000
+  response: 60000
